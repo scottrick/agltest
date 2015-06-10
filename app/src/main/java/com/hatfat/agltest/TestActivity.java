@@ -7,8 +7,10 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import com.hatfat.agl.app.AglActivity;
+import com.hatfat.agl.component.ComponentType;
+import com.hatfat.agl.component.LightComponent;
+import com.hatfat.agl.component.Transform;
 import com.hatfat.agl.util.AglRandom;
-import com.hatfat.agl.util.Vec3;
 
 import javax.inject.Inject;
 
@@ -21,9 +23,11 @@ public class TestActivity extends AglActivity implements View.OnTouchListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        final TestScene aglScene = new TestScene(getApplicationContext());
-        final TestTextureScene textureScene = new TestTextureScene(getApplicationContext());
-        aglSurfaceView.setScene(textureScene);
+        final TestScene aglScene = new TestScene(getApplicationContext());
+//        final TestTextureScene aglScene = new TestTextureScene(getApplicationContext());
+//        final EntityScene aglScene = new EntityScene(getApplicationContext());
+//        final AglScene aglScene = new AglLoadingScene(getApplicationContext());
+        aglSurfaceView.setScene(aglScene);
 
         aglSurfaceView.setOnTouchListener(this);
 
@@ -35,37 +39,43 @@ public class TestActivity extends AglActivity implements View.OnTouchListener {
         testButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getScene().getGlobalLight().lightColor = rand.nextColor();
+                LightComponent lightComponent = getScene().getGlobalLight().getComponentByType(ComponentType.LIGHT);
+                lightComponent.lightColor = rand.nextColor();
             }
         });
 
         Button meshButton = (Button) ourView.findViewById(R.id.test_activity_layout_toggle_button);
-        meshButton.setVisibility(View.GONE);
-//        meshButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                aglScene.toggleMesh();
-//            }
-//        });
+        meshButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                aglScene.nextMesh();
+            }
+        });
     }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_UP:
+                if (getScene().isPaused()) {
+                    getScene().unpause();
+                }
+                else {
+                    getScene().pause();
+                }
+                break;
             case MotionEvent.ACTION_MOVE: {
                 float halfWidth = aglSurfaceView.getWidth() / 2.0f;
                 float halfHeight = aglSurfaceView.getHeight() / 2.0f;
-                float scale = 1.0f;
+                float scale = 1.6f;
 
                 float xValue = (event.getX() - halfWidth) / halfWidth * scale;
                 float yValue = (event.getY() - halfHeight) / halfHeight * scale;
 
-                Vec3 lightDir = getScene().getGlobalLight().lightDir;
-                lightDir.x = xValue;
-                lightDir.y = -yValue;
-                lightDir.z = 1.0f;
+                Transform transformComponent = getScene().getGlobalLight().getComponentByType(ComponentType.TRANSFORM);
+                transformComponent.posQuat.pos.x = xValue;
+                transformComponent.posQuat.pos.y = -yValue;
+                transformComponent.posQuat.pos.z = 1.0f;
             }
                 break;
         }

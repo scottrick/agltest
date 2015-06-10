@@ -5,27 +5,36 @@ import android.opengl.GLES20;
 import android.util.Log;
 
 import com.hatfat.agl.AglCamera;
-import com.hatfat.agl.AglNode;
 import com.hatfat.agl.AglPerspectiveCamera;
-import com.hatfat.agl.AglRenderable;
 import com.hatfat.agl.AglScene;
 import com.hatfat.agl.app.AglRenderer;
+import com.hatfat.agl.component.ComponentType;
+import com.hatfat.agl.component.LightComponent;
+import com.hatfat.agl.component.ModifierComponent;
+import com.hatfat.agl.component.RenderableComponent;
+import com.hatfat.agl.component.Transform;
+import com.hatfat.agl.entity.AglEntity;
 import com.hatfat.agl.mesh.AglBBMesh;
+import com.hatfat.agl.mesh.TestRenderableFactory;
 import com.hatfat.agl.modifiers.SpinModifier;
+import com.hatfat.agl.render.AglRenderable;
 import com.hatfat.agl.util.Vec3;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class TestScene extends AglScene {
 
     private Random rand;
 
-    private int activeNodeIndex;
     private AglBBMesh[] bbMeshes;
-    private AglNode[] wireframeNodes;
-    private AglNode[] meshNodes;
+
+    private List<AglEntity> meshEntities;
+    private int             activeEntityIndex = 0;
+
 
     int numTestNodes = 7;
 
@@ -35,7 +44,7 @@ public class TestScene extends AglScene {
         rand = new Random();
 
         AglCamera camera = new AglPerspectiveCamera(
-                new Vec3(0.0f, 0.0f, 3.5f),
+                new Vec3(0.0f, 0.0f, 4.0f),
                 new Vec3(0.0f, 0.0f, 0.0f),
                 new Vec3(0.0f, 1.0f, 0.0f),
                 60.0f, 1.0f, 0.1f, 100.0f);
@@ -46,21 +55,22 @@ public class TestScene extends AglScene {
     @Override protected void setupSceneBackgroundWork() {
         super.setupSceneBackgroundWork();
 
-        activeNodeIndex = 0;
-        bbMeshes = new AglBBMesh[numTestNodes];
-        wireframeNodes = new AglNode[numTestNodes];
-        meshNodes = new AglNode[numTestNodes];
+        meshEntities      = new ArrayList<>();
 
-        for (int i = 0; i < numTestNodes; i++) {
-            String resourceName = "mesh" + (i + 1);
-            int resId = getContext().getResources().getIdentifier(resourceName, "raw", getContext().getPackageName());
-            InputStream in = getContext().getResources().openRawResource(resId);
+        if (bbMeshes == null) {
+            bbMeshes = new AglBBMesh[numTestNodes];
 
-            try {
-                bbMeshes[i] = AglBBMesh.readFromStreamAsBytes(in);
-            }
-            catch (IOException e) {
-                Log.e("TestScene", "Error loading BB mesh resources.");
+            for (int i = 0; i < numTestNodes; i++) {
+                String resourceName = "mesh" + (i + 1);
+                int resId = getContext().getResources()
+                        .getIdentifier(resourceName, "raw", getContext().getPackageName());
+                InputStream in = getContext().getResources().openRawResource(resId);
+
+                try {
+                    bbMeshes[i] = AglBBMesh.readFromStreamAsBytes(in);
+                } catch (IOException e) {
+                    Log.e("TestScene", "Error loading BB mesh resources.");
+                }
             }
         }
     }
@@ -75,7 +85,7 @@ public class TestScene extends AglScene {
         Vec3 spinVec = new Vec3(rand.nextFloat(), rand.nextFloat(), rand.nextFloat());
         spinVec.normalize();
 
-        float rotateSpeed = 3.0f;
+        float rotateSpeed = 30.0f;
 
         for (int i = 0; i < numTestNodes; i++) {
             AglBBMesh shapeMesh = bbMeshes[i];
@@ -84,24 +94,34 @@ public class TestScene extends AglScene {
                 AglRenderable wireframeRenderable = shapeMesh.toWireframeRenderable();
                 AglRenderable coloredRenderable = shapeMesh.toColoredGeometryRenderable();
 
-                AglNode meshNode = new AglNode(new Vec3(0.0f, 0.0f, 0.0f), coloredRenderable);
-                meshNode.addModifier(new SpinModifier(rotateSpeed, spinVec));
-                meshNode.setShouldRender(false);
-                meshNodes[i] = meshNode;
-                addNode(meshNode);
+                AglEntity meshEntity = new AglEntity("mesh entity " + String.valueOf(i));
+                meshEntity.addComponent(new RenderableComponent(wireframeRenderable));
+                meshEntity.addComponent(new RenderableComponent(coloredRenderable));
+                meshEntity.addComponent(new Transform());
 
-                AglNode wireframeNode = new AglNode(new Vec3(0.0f, 0.0f, 0.0f),
-                        wireframeRenderable);
-                wireframeNode.addModifier(new SpinModifier(rotateSpeed, spinVec));
-                wireframeNode.setShouldRender(false);
-                wireframeNodes[i] = wireframeNode;
-                addNode(wireframeNode);
+                ModifierComponent modifierComponent = new ModifierComponent();
+                modifierComponent.addModifier(new SpinModifier(rotateSpeed, spinVec));
+
+                meshEntity.addComponent(modifierComponent);
+
+                meshEntities.add(meshEntity);
+                addEntity(meshEntity);
             }
         }
 
-        meshNodes[activeNodeIndex].setShouldRender(true);
-        wireframeNodes[activeNodeIndex].setShouldRender(true);
-        bbMeshes = null; //don't need these anymore!
+        updateMeshes();
+
+        //TEST LIGHT ENTITY STUFF
+        removeEntity(globalLightEntity);
+
+        globalLightEntity = new AglEntity("hatfat global light");
+        globalLightEntity.addComponent(new LightComponent());
+
+        globalLightEntity.addComponent(new RenderableComponent(TestRenderableFactory.createIcosahedronWireframe()));
+        Transform lightTransform = new Transform(new Vec3(0.0f, 0.0f, 1.75f));
+        lightTransform.setScale(new Vec3(0.05f, 0.05f, 0.05f));
+        globalLightEntity.addComponent(lightTransform);
+        addEntity(globalLightEntity);
     }
 
     @Override
@@ -112,13 +132,18 @@ public class TestScene extends AglScene {
         GLES20.glDisable(GLES20.GL_POLYGON_OFFSET_FILL);
     }
 
-    public void toggleMesh() {
-        meshNodes[activeNodeIndex].setShouldRender(false);
-        wireframeNodes[activeNodeIndex].setShouldRender(false);
+    public void nextMesh() {
+        activeEntityIndex = (activeEntityIndex + 1) % meshEntities.size();
+        updateMeshes();
+    }
 
-        activeNodeIndex = (activeNodeIndex + 1) % meshNodes.length;
+    private void updateMeshes() {
+        for (AglEntity entity : meshEntities) {
+            List<RenderableComponent> renderableComponents = entity.getComponentsByType(ComponentType.RENDERABLE);
 
-        meshNodes[activeNodeIndex].setShouldRender(true);
-        wireframeNodes[activeNodeIndex].setShouldRender(true);
+            for (RenderableComponent renderableComponent : renderableComponents) {
+                renderableComponent.setShouldRender(meshEntities.indexOf(entity) == activeEntityIndex);
+            }
+        }
     }
 }
