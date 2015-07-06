@@ -4,8 +4,6 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.util.Log;
 
-import com.hatfat.agl.AglCamera;
-import com.hatfat.agl.AglPerspectiveCamera;
 import com.hatfat.agl.AglScene;
 import com.hatfat.agl.app.AglRenderer;
 import com.hatfat.agl.component.ComponentType;
@@ -39,17 +37,11 @@ public class TestScene extends AglScene {
     int numTestNodes = 7;
 
     public TestScene(Context context) {
-        super(context);
+        super(context, true);
 
         rand = new Random();
 
-        AglCamera camera = new AglPerspectiveCamera(
-                new Vec3(0.0f, 0.0f, 4.0f),
-                new Vec3(0.0f, 0.0f, 0.0f),
-                new Vec3(0.0f, 1.0f, 0.0f),
-                60.0f, 1.0f, 0.1f, 100.0f);
-
-        setCamera(camera);
+        getCamera().getEye().z = 4.0f;
     }
 
     @Override protected void setupSceneBackgroundWork() {
@@ -133,8 +125,10 @@ public class TestScene extends AglScene {
     }
 
     public void nextMesh() {
-        activeEntityIndex = (activeEntityIndex + 1) % meshEntities.size();
-        updateMeshes();
+        if (meshEntities.size() > 0) {
+            activeEntityIndex = (activeEntityIndex + 1) % meshEntities.size();
+            updateMeshes();
+        }
     }
 
     private void updateMeshes() {

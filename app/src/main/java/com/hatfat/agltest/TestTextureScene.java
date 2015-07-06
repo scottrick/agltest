@@ -2,8 +2,6 @@ package com.hatfat.agltest;
 
 import android.content.Context;
 
-import com.hatfat.agl.AglCamera;
-import com.hatfat.agl.AglPerspectiveCamera;
 import com.hatfat.agl.AglScene;
 import com.hatfat.agl.app.AglRenderer;
 import com.hatfat.agl.component.ComponentType;
@@ -27,15 +25,9 @@ public class TestTextureScene extends AglScene {
     private int             activeEntityIndex = 0;
 
     public TestTextureScene(Context context) {
-        super(context);
+        super(context, true);
 
-        AglCamera camera = new AglPerspectiveCamera(
-                new Vec3(0.0f, 0.0f, 4.0f),
-                new Vec3(0.0f, 0.0f, 0.0f),
-                new Vec3(0.0f, 1.0f, 0.0f),
-                60.0f, 1.0f, 0.1f, 500.0f);
-
-        setCamera(camera);
+        getCamera().getEye().z = 4.0f;
     }
 
     @Override protected void setupSceneBackgroundWork() {

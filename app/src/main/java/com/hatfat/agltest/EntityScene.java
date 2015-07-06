@@ -2,27 +2,18 @@ package com.hatfat.agltest;
 
 import android.content.Context;
 
-import com.hatfat.agl.AglCamera;
-import com.hatfat.agl.AglPerspectiveCamera;
 import com.hatfat.agl.AglScene;
 import com.hatfat.agl.app.AglRenderer;
 import com.hatfat.agl.component.PhysicsComponent;
 import com.hatfat.agl.component.Transform;
 import com.hatfat.agl.entity.AglEntity;
-import com.hatfat.agl.util.Vec3;
 
 public class EntityScene extends AglScene {
 
     public EntityScene(Context context) {
-        super(context);
+        super(context, true);
 
-        AglCamera camera = new AglPerspectiveCamera(
-                new Vec3(0.0f, 0.0f, 5.0f),
-                new Vec3(0.0f, 0.0f, 0.0f),
-                new Vec3(0.0f, 1.0f, 0.0f),
-                60.0f, 1.0f, 0.1f, 100.0f);
-
-        setCamera(camera);
+        getCamera().getEye().z = 5.0f;
     }
 
     @Override protected void setupSceneBackgroundWork() {
