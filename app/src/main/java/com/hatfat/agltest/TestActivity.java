@@ -9,7 +9,7 @@ import android.widget.RelativeLayout;
 import com.hatfat.agl.app.AglActivity;
 import com.hatfat.agl.component.ComponentType;
 import com.hatfat.agl.component.LightComponent;
-import com.hatfat.agl.component.Transform;
+import com.hatfat.agl.component.transform.Transform;
 import com.hatfat.agl.util.AglRandom;
 
 import javax.inject.Inject;
@@ -23,8 +23,8 @@ public class TestActivity extends AglActivity implements View.OnTouchListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        final TestScene aglScene = new TestScene(getApplicationContext());
-//        final TestTextureScene aglScene = new TestTextureScene(getApplicationContext());
+//        final TestScene aglScene = new TestScene(getApplicationContext());
+        final TestTextureScene aglScene = new TestTextureScene(getApplicationContext());
 //        final EntityScene aglScene = new EntityScene(getApplicationContext());
 //        final AglScene aglScene = new AglLoadingScene(getApplicationContext());
         aglSurfaceView.setScene(aglScene);
@@ -75,7 +75,6 @@ public class TestActivity extends AglActivity implements View.OnTouchListener {
                 Transform transformComponent = getScene().getGlobalLight().getComponentByType(ComponentType.TRANSFORM);
                 transformComponent.posQuat.pos.x = xValue;
                 transformComponent.posQuat.pos.y = -yValue;
-                transformComponent.posQuat.pos.z = 1.0f;
             }
                 break;
         }

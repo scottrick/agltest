@@ -5,7 +5,7 @@ import android.content.Context;
 import com.hatfat.agl.AglScene;
 import com.hatfat.agl.app.AglRenderer;
 import com.hatfat.agl.component.PhysicsComponent;
-import com.hatfat.agl.component.Transform;
+import com.hatfat.agl.component.transform.Transform;
 import com.hatfat.agl.entity.AglEntity;
 
 public class EntityScene extends AglScene {

@@ -10,7 +10,8 @@ import com.hatfat.agl.component.ComponentType;
 import com.hatfat.agl.component.LightComponent;
 import com.hatfat.agl.component.ModifierComponent;
 import com.hatfat.agl.component.RenderableComponent;
-import com.hatfat.agl.component.Transform;
+import com.hatfat.agl.component.transform.OffsetTransform;
+import com.hatfat.agl.component.transform.Transform;
 import com.hatfat.agl.entity.AglEntity;
 import com.hatfat.agl.mesh.AglBBMesh;
 import com.hatfat.agl.mesh.TestRenderableFactory;
@@ -21,6 +22,7 @@ import com.hatfat.agl.util.Vec3;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -110,10 +112,56 @@ public class TestScene extends AglScene {
         globalLightEntity.addComponent(new LightComponent());
 
         globalLightEntity.addComponent(new RenderableComponent(TestRenderableFactory.createIcosahedronWireframe()));
-        Transform lightTransform = new Transform(new Vec3(0.0f, 0.0f, 1.75f));
+        Transform lightTransform = new Transform(new Vec3(0.0f, 0.0f, 2.5f));
         lightTransform.setScale(new Vec3(0.05f, 0.05f, 0.05f));
         globalLightEntity.addComponent(lightTransform);
         addEntity(globalLightEntity);
+
+        //TEST BILLBOARD STUFF
+        float testScale = 0.2f;
+        float testDist = 1.0f + testScale / 2.0f;
+
+        List<String> materials = new LinkedList<>();
+        materials.add("01");
+        materials.add("05");
+        materials.add("113");
+        materials.add("133");
+
+        for (String material : materials) {
+//            AglRenderable renderable = TestRenderableFactory.createTextureSquare(
+//                    renderer.getTextureManager().getTexture("pattern_" + material + "_diffuse"));
+
+            AglRenderable renderable = TestRenderableFactory.createNormalMappedTextureCube(
+                    renderer.getTextureManager().getTexture("pattern_" + material + "_diffuse"),
+                    renderer.getTextureManager().getTexture("pattern_" + material + "_normal"),
+                    renderer.getTextureManager().getTexture("pattern_" + material + "_specular")
+            );
+
+            AglEntity entity = new AglEntity("Texture Entity " + material);
+
+            RenderableComponent renderableComponent = new RenderableComponent(renderable);
+
+            Transform transformComponent = new OffsetTransform(meshEntities.get(0).entityId);
+            transformComponent.isBillboard = true;
+
+            Vec3 randomOffset = new Vec3(
+                    rand.nextFloat() * 2.0f - 1.0f,
+                    rand.nextFloat() * 2.0f - 1.0f,
+                    rand.nextFloat() * 2.0f - 1.0f);
+
+            randomOffset.normalize();
+            randomOffset.x *= testDist;
+            randomOffset.y *= testDist;
+            randomOffset.z *= testDist;
+
+            transformComponent.posQuat.pos = randomOffset;
+            transformComponent.setScale(new Vec3(testScale, testScale, testScale));
+
+            entity.addComponent(renderableComponent);
+            entity.addComponent(transformComponent);
+
+            addEntity(entity);
+        }
     }
 
     @Override
