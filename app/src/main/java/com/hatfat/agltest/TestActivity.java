@@ -24,9 +24,8 @@ public class TestActivity extends AglActivity implements View.OnTouchListener {
         super.onCreate(savedInstanceState);
 
 //        final TestScene aglScene = new TestScene(getApplicationContext());
-        final TestTextureScene aglScene = new TestTextureScene(getApplicationContext());
-//        final EntityScene aglScene = new EntityScene(getApplicationContext());
-//        final AglScene aglScene = new AglLoadingScene(getApplicationContext());
+        final BumpMapScene aglScene = new BumpMapScene(getApplicationContext());
+//        final TextureScene aglScene = new TextureScene(getApplicationContext());
         aglSurfaceView.setScene(aglScene);
 
         aglSurfaceView.setOnTouchListener(this);

@@ -4,8 +4,9 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.util.Log;
 
-import com.hatfat.agl.AglScene;
 import com.hatfat.agl.app.AglRenderer;
+import com.hatfat.agl.base.AglScene;
+import com.hatfat.agl.base.systems.TransformModifierSystem;
 import com.hatfat.agl.component.ComponentType;
 import com.hatfat.agl.component.LightComponent;
 import com.hatfat.agl.component.ModifierComponent;
@@ -40,6 +41,8 @@ public class TestScene extends AglScene {
 
     public TestScene(Context context) {
         super(context, true);
+
+        addSystem(new TransformModifierSystem());
 
         rand = new Random();
 
